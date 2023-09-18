@@ -45,6 +45,7 @@ const migrateData = async () => {
               bio: user.description,
               profileImage: user.profile_image_url,
               coverImage: user.cover_image_url,
+              userTimeZone: user.user_time_zone,
             }
           })
 
