@@ -25,6 +25,7 @@ const migrateData = async () => {
 
     for (let i = 0; i < count; i=i+100) {
       const [users, metadata] = await fifoDB.query(findFifoUsers(100, i));
+
       await Promise.all(
         users.map(async (user) => {
           const userSlicedName = user.name.split(' ');
@@ -41,7 +42,9 @@ const migrateData = async () => {
               password: user.hashed_password,
               username: user.username,
               email: user.email,
-              bio: user.description
+              bio: user.description,
+              profileImage: user.profile_image_url,
+              coverImage: user.cover_image_url,
             }
           })
 
