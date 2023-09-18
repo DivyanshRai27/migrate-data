@@ -1,7 +1,7 @@
 const countFifoUsers = `select count(*) from users where podcast_id is null and user_type is null and id not like 'BOT%';`;
 
 const findFifoUsers = (limit = 100, offset = 0) => {
-  return `select * from users where podcast_id is null and user_type is null and id not like 'BOT%' and is_number_verified=true limit ${limit} offset ${offset};`
+  return `select * from users where podcast_id is null and user_type is null and id not like 'BOT%' and is_number_verified=true and username is not null limit ${limit} offset ${offset};`
 };
 
 const insertUserInAuth = `insert into public.user (phone, first_name, last_name, password, username, email, bio, profile_image, cover_image, user_time_zone) values ($phone, $first, $last, $password, $username, $email, $bio, $profileImage, $coverImage, $userTimeZone) returning id`
