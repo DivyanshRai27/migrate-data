@@ -33,6 +33,13 @@ const migrateData = async () => {
             userSlicedName[1] = userSlicedName[0];
           }
 
+          user.unconfirmedEmail = null;
+
+          if (!user.is_email_verified) {
+            user.unconfirmedEmail = user.email;
+            user.email = null;
+          };
+
           let createdUser = await authDB.query(insertUserInAuth, 
           {
             bind: {
@@ -42,6 +49,7 @@ const migrateData = async () => {
               password: user.hashed_password,
               username: user.username,
               email: user.email,
+              unconfirmedEmail: user.unconfirmedEmail,
               bio: user.description,
               profileImage: user.profile_image_url,
               coverImage: user.cover_image_url,
