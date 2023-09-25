@@ -6,10 +6,13 @@ const findFifoUsers = (limit = 100, offset = 0) => {
 
 const insertUserInAuth = `insert into public.user (phone, first_name, last_name, password, username, email, bio, profile_image, cover_image, user_time_zone, unconfirmed_email) values ($phone, $first, $last, $password, $username, $email, $bio, $profileImage, $coverImage, $userTimeZone, $unconfirmedEmail) returning id`
 
+const insertGatewayIdInFifo = `insert into users (gateway_id) values ($gatewayId) where phone_number=$phoneNumber`;
+
 const insertUserClientInAuth = `insert into public.user_clients (client_id, user_id) values ($client, $user)`
 module.exports = { 
   countFifoUsers,
   findFifoUsers ,
   insertUserInAuth,
-  insertUserClientInAuth
+  insertUserClientInAuth,
+  insertGatewayIdInFifo
 };

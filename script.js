@@ -4,7 +4,8 @@ const {
   findFifoUsers, 
   countFifoUsers, 
   insertUserInAuth, 
-  insertUserClientInAuth
+  insertUserClientInAuth,
+  insertGatewayIdInFifo
 } = require('./queries');
 const { getClients } = require('./constants');
 
@@ -62,6 +63,14 @@ const migrateData = async () => {
               bind: {
                 client: getClients(process.env.NODE_ENV),
                 user: createdUser[0][0].id
+              }
+            })
+
+          await fifoDB.query(insertGatewayIdInFifo, 
+            {
+              bind: {
+                gatewayId: createdUser[0][0].id,
+                phoneNumber: createdUser[0][0].phone_number
               }
             })
         })
