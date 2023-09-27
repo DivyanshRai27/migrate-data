@@ -5,7 +5,9 @@ const {
   countFifoUsers, 
   insertUserInAuth, 
   insertUserClientInAuth,
-  insertGatewayIdInFifo
+  insertGatewayIdInFifo,
+  findOneByPhoneInAuth,
+  updateUserByPhoneInAuth
 } = require('./queries');
 const { getClients } = require('./constants');
 
@@ -29,7 +31,62 @@ const migrateData = async () => {
 
       await Promise.all(
         users.map(async (user) => {
-          const userSlicedName = user.name.split(' ');
+          const [foundUser, foundMetadata] = await authDB.query(findOneByPhoneInAuth, {
+            bind: {
+              phone: user.phone_number
+            }
+          })
+
+          if (foundUser.length > 0) {
+            let bio = foundUser[0].bio;
+            let profileImage = foundUser[0].profile_image;
+            let coverImage = foundUser[0].cover_image;
+            let unconfirmedEmail = foundUser[0].email;
+            if (!foundUser[0].bio) {
+              bio = user.description;
+            }
+
+            if (!foundUser[0].profile_image) {
+              profileImage = user.profile_image_url;
+            }
+
+            if (!foundUser[0].cover_image) {
+              coverImage = user.cover_image_url;
+            }
+
+            if (!foundUser[0].email) {
+              unconfirmedEmail = user.email
+            }
+
+            let createdUser = await authDB.query(updateUserByPhoneInAuth,
+              {
+                bind: {
+                  phone: foundUser[0].phone,
+                  bio,
+                  profileImage,
+                  coverImage,
+                  unconfirmedEmail,
+                }
+              })
+
+            await authDB.query(insertUserClientInAuth,
+            {
+              bind: {
+                client: getClients(process.env.NODE_ENV),
+                user: createdUser[0][0].id
+              }
+            })
+
+            await fifoDB.query(insertGatewayIdInFifo, 
+              {
+                bind: {
+                  gatewayId: createdUser[0][0].id,
+                  phoneNumber: createdUser[0][0].phone
+                }
+              })
+            
+          } else {
+            const userSlicedName = user.name.split(' ');
           if (!userSlicedName[1]) {
             userSlicedName[1] = userSlicedName[0];
           }
@@ -70,9 +127,10 @@ const migrateData = async () => {
             {
               bind: {
                 gatewayId: createdUser[0][0].id,
-                phoneNumber: createdUser[0][0].phone_number
+                phoneNumber: createdUser[0][0].phone
               }
             })
+          }
         })
       )
     }
