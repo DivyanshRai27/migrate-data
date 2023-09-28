@@ -43,7 +43,6 @@ const migrateData = async () => {
             let bio = foundUser[0].bio;
             let profileImage = foundUser[0].profile_image;
             let coverImage = foundUser[0].cover_image;
-            let unconfirmedEmail = foundUser[0].email;
             if (!foundUser[0].bio) {
               bio = user.description;
             }
@@ -54,10 +53,6 @@ const migrateData = async () => {
 
             if (!foundUser[0].cover_image) {
               coverImage = user.cover_image_url;
-            }
-
-            if (!foundUser[0].email) {
-              unconfirmedEmail = user.email
             }
 
             let createdUser = await authDB.query(updateUserByPhoneInAuth,
@@ -71,14 +66,6 @@ const migrateData = async () => {
                 }
               })
 
-            await authDB.query(insertUserClientInAuth,
-            {
-              bind: {
-                client: getClients(process.env.NODE_ENV),
-                user: createdUser[0][0].id
-              }
-            })
-
             await fifoDB.query(insertGatewayIdInFifo, 
               {
                 bind: {
@@ -88,7 +75,7 @@ const migrateData = async () => {
               })
             
           } else {
-            const userSlicedName = user.name.split(' ');
+          const userSlicedName = user.name.split(' ');
           if (!userSlicedName[1]) {
             userSlicedName[1] = userSlicedName[0];
           }
@@ -118,14 +105,14 @@ const migrateData = async () => {
           })
 
           await authDB.query(insertUserClientInAuth,
-            {
-              bind: {
-                client: getClients(process.env.NODE_ENV),
-                user: createdUser[0][0].id
-              }
-            })
+          {
+            bind: {
+              client: getClients(process.env.NODE_ENV),
+              user: createdUser[0][0].id
+            }
+          })
 
-          await fifoDB.query(insertGatewayIdInFifo, 
+          await fifoDB.query(insertGatewayIdInFifo,
             {
               bind: {
                 gatewayId: createdUser[0][0].id,
