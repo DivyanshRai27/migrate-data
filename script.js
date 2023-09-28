@@ -26,6 +26,8 @@ const migrateData = async () => {
     const response = await fifoDB.query(countFifoUsers);
     let count = response[0][0].count;
 
+    console.log(`Total Users -> ${count}`);
+
     for (let i = 0; i < count; i=i+100) {
       const [users, metadata] = await fifoDB.query(findFifoUsers(100, i));
 
@@ -134,6 +136,8 @@ const migrateData = async () => {
         })
       )
     }
+
+    console.log(`Migration completed for ${count} users.`)
   } catch (error) {
     console.error(error);
     throw error;
