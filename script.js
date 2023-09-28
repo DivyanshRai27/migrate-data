@@ -28,16 +28,23 @@ const migrateData = async () => {
 
     console.log(`Total Users -> ${count}`);
 
-    for (let i = 0; i < count; i=i+100) {
-      const [users, metadata] = await fifoDB.query(findFifoUsers(100, i));
+    let users = [];
+    let createdAuthUser = [];
 
+    for (let i = 0; i < count; i=i+100) {
+      const [foundUsers, metadata] = await fifoDB.query(findFifoUsers(100, i));
+
+      users.push(...foundUsers)
+    }
+
+    await authDB.transaction(async (t) => {
       await Promise.all(
         users.map(async (user) => {
           const [foundUser, foundMetadata] = await authDB.query(findOneByPhoneInAuth, {
             bind: {
               phone: user.phone_number
             }
-          })
+          }, { transaction: t })
 
           if (foundUser.length > 0) {
             let bio = foundUser[0].bio;
@@ -55,7 +62,7 @@ const migrateData = async () => {
               coverImage = user.cover_image_url;
             }
 
-            let createdUser = await authDB.query(updateUserByPhoneInAuth,
+            await authDB.query(updateUserByPhoneInAuth,
               {
                 bind: {
                   phone: foundUser[0].phone,
@@ -63,16 +70,7 @@ const migrateData = async () => {
                   profileImage,
                   coverImage,
                 }
-              })
-
-            await fifoDB.query(insertGatewayIdInFifo, 
-              {
-                bind: {
-                  gatewayId: createdUser[0][0].id,
-                  phoneNumber: createdUser[0][0].phone
-                }
-              })
-            
+              }, { transaction: t })     
           } else {
           const userSlicedName = user.name.split(' ');
           if (!userSlicedName[1]) {
@@ -101,7 +99,7 @@ const migrateData = async () => {
               coverImage: user.cover_image_url,
               userTimeZone: user.user_time_zone,
             }
-          })
+          }, { transaction: t })
 
           await authDB.query(insertUserClientInAuth,
           {
@@ -109,19 +107,27 @@ const migrateData = async () => {
               client: getClients(process.env.NODE_ENV),
               user: createdUser[0][0].id
             }
-          })
+          }, { transaction: t })
 
-          await fifoDB.query(insertGatewayIdInFifo,
-            {
-              bind: {
-                gatewayId: createdUser[0][0].id,
-                phoneNumber: createdUser[0][0].phone
-              }
-            })
+          createdAuthUser.push(createdUser[0][0])
           }
         })
       )
-    }
+    })
+
+    await fifoDB.transaction(async (t) => {
+      await Promise.all(
+        createdAuthUser.map(async (user) => {
+          await fifoDB.query(insertGatewayIdInFifo,
+            {
+              bind: {
+                gatewayId: user.id,
+                phoneNumber: user.phone
+              }
+            }, { transaction: t })
+        })
+      )
+    })
 
     console.log(`Migration completed for ${count} users.`)
   } catch (error) {

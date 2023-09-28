@@ -1,4 +1,4 @@
-const countFifoUsers = `select count(*) from users where podcast_id is null and user_type is null and id not like 'BOT%';`;
+const countFifoUsers = `select count(*) from users where podcast_id is null and user_type is null and id not like 'BOT%' and is_number_verified=true and username is not null and deleted_at is null;`;
 
 const findFifoUsers = (limit = 100, offset = 0) => {
   return `select * from users where podcast_id is null and user_type is null and id not like 'BOT%' and is_number_verified=true and username is not null and deleted_at is null order by created_at asc limit ${limit} offset ${offset};`
