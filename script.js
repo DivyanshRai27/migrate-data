@@ -13,12 +13,14 @@ const { getClients } = require('./constants');
 
 const fifoDB = new Sequelize(process.env.FIFO_DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
-  dialect: 'postgres'
+  dialect: 'postgres',
+  port: process.env.DB_PORT
 });
 
 const authDB = new Sequelize(process.env.AUTH_SERVER_DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
-  dialect: 'postgres'
+  dialect: 'postgres',
+  port: process.env.DB_PORT
 });
 
 const migrateData = async () => {
@@ -29,7 +31,6 @@ const migrateData = async () => {
     console.log(`Total Users -> ${count}`);
 
     let users = [];
-    let createdAuthUser = [];
 
     for (let i = 0; i < count; i=i+100) {
       const [foundUsers, metadata] = await fifoDB.query(findFifoUsers(100, i));
@@ -108,23 +109,7 @@ const migrateData = async () => {
               user: createdUser[0][0].id
             }
           }, { transaction: t })
-
-          createdAuthUser.push(createdUser[0][0])
           }
-        })
-      )
-    })
-
-    await fifoDB.transaction(async (t) => {
-      await Promise.all(
-        createdAuthUser.map(async (user) => {
-          await fifoDB.query(insertGatewayIdInFifo,
-            {
-              bind: {
-                gatewayId: user.id,
-                phoneNumber: user.phone
-              }
-            }, { transaction: t })
         })
       )
     })

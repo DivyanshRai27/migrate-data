@@ -1,7 +1,13 @@
 const countFifoUsers = `select count(*) from users where podcast_id is null and user_type is null and id not like 'BOT%' and is_number_verified=true and username is not null and deleted_at is null;`;
 
+const countAuthUsers = `select count(*) from public.user;`
+
 const findFifoUsers = (limit = 100, offset = 0) => {
   return `select * from users where podcast_id is null and user_type is null and id not like 'BOT%' and is_number_verified=true and username is not null and deleted_at is null order by created_at asc limit ${limit} offset ${offset};`
+};
+
+const findAuthUsers = (limit = 100, offset = 0) => {
+  return `select * from public.user limit ${limit} offset ${offset};`
 };
 
 const insertUserInAuth = `insert into public.user (phone, first_name, last_name, password, username, email, bio, profile_image, cover_image, user_time_zone, unconfirmed_email) values ($phone, $first, $last, $password, $username, $email, $bio, $profileImage, $coverImage, $userTimeZone, $unconfirmedEmail) returning id, phone`
@@ -15,7 +21,9 @@ const findOneByPhoneInAuth = `select * from public.user where phone=$phone`;
 const updateUserByPhoneInAuth = `update public.user set bio = $bio, profile_image = $profileImage, cover_image = $coverImage where phone = $phone returning id, phone`;
 module.exports = { 
   countFifoUsers,
-  findFifoUsers ,
+  countAuthUsers,
+  findFifoUsers,
+  findAuthUsers,
   insertUserInAuth,
   insertUserClientInAuth,
   insertGatewayIdInFifo,
