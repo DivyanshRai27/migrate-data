@@ -12,7 +12,7 @@ const insertUserClientInAuth = `insert into public.user_clients (client_id, user
 
 const findOneByPhoneInAuth = `select * from public.user where phone=$phone`;
 
-const updateUserByPhoneInAuth = `update public.user set bio = $bio, profile_image = $profileImage, cover_image = $coverImage, unconfirmed_email = $unconfirmedEmail where phone = $phone returning id, phone`;
+const updateUserByPhoneInAuth = `update public.user set bio = $bio, profile_image = $profileImage, cover_image = $coverImage where phone = $phone returning id, phone`;
 module.exports = { 
   countFifoUsers,
   findFifoUsers ,
