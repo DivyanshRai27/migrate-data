@@ -62,7 +62,6 @@ const migrateData = async () => {
                   bio,
                   profileImage,
                   coverImage,
-                  unconfirmedEmail,
                 }
               })
 
